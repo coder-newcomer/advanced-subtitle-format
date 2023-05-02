@@ -1,0 +1,9 @@
+﻿WEBVTT
+
+STYLE
+::cue {
+  font-family: "Comic Sans MS";
+}
+
+00:00:01.000 --> 00:00:06.000
+Let's see what the <b>WebVTT</b> can do

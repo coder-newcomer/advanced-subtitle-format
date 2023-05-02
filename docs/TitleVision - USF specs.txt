@@ -1,0 +1,651 @@
+﻿-----------------------------------------------------------------------
+Universal Subtitle Format (USF) Specification v1.1
+-----------------------------------------------------------------------
+Document revision:  V 1.1
+Initial Release:    November 10, 2002
+Updated:            November 28, 2010
+Author(s):          Christophe PARIS (toffATcorecodecDOTcom)
+                    Ludovic Vialle (blacksunATcorecodecDOTcom)
+                    Uffe Hammer (hammerATanarkiDOTdk)
+Website:            http://usf.CoreCodec.com/
+Maintainer:         http://www.CoreCodec.com/
+-----------------------------------------------------------------------
+
+
+Table Of Contents
+-----------------
+1 - Introduction
+2 - Features and advantages
+3 - The format syntax
+    3.1 metadata
+    3.2 styles
+    3.3 effects
+    3.4 subtitles
+    3.5 other comments
+4 - An example
+5 - The future of USF
+6 - History
+7 - Resources
+8 - Glossary
+
+
+
+1 - Introduction
+----------------
+
+The goal of the Universal Subtitle Format (USF) is to create a new format
+taking the best of currently available subtitles formats.
+This format must be flexible enought to be used in every day subtitling,
+as in more advanced subtitling projects. The key of the project is to
+provide a set of tools and specifications to improve the quality of the
+subtitles videos by preventing the process of encoding the subtitles with
+the video which is providing a great loss of quality due to the contrast of
+the subtitles. Also the format has been designed so the user can still
+change the default style such as the font size, color, etc on the playback.
+
+A big thank you to mf/Gabest/Pamel/Liisachan who are consultants on USF :)
+
+
+2 - Features and advantages
+---------------------------
+
+- XML based for better flexibility and interoperability
+- Easy to learn syntax, closed to HTML
+- Time based to avoid problem with video frame rate conversion
+- 4 element types :
+  - text
+  - image
+  - karaoke
+  - shape (rectangle, ...)
+- Powerfull element positioning system :
+  - 9 alignment type (TopLeft, ..., MiddleCenter, ..., BottomRight)
+  - Relative to window or video
+  - Horizontal & vertical margin in pixel or percent of video/window  
+- Text attribute usable on a per letter basis :
+  - color
+  - italic, bold, underline
+  - size
+  - font
+- Definable style for quicker global modifications
+- Meta information to increase archiving/search facilities :
+  - title
+  - author
+  - language (ISO639-2 plus a user definable string)
+  - date
+  - comment
+
+
+3 - The format syntax
+---------------------
+
+An XML file can be seen as a tree, with a root, branches and nodes.
+<rootnode>            +-rootnode
+  <node>                |
+    <subnode/>          +-node
+  <node>                  |
+</rootnode>               +-subnode
+
+The root of the USF tree is called "USFSubtitles".
+
+<USFSubtitles version="1.0">     +-USFSubtitles   (1)
+                                    @-version     (1)
+  <metadata>...</metadata>          +-metadata    (1)
+  <styles>...</styles>              +-styles      (0..1)
+  <effects>...</effects>            +-effects     (0..1)
+  <subtitles>...</subtitles>        +-subtitles   (1..N)
+</USFSubtitles>
+
+Between parenthesis the possible number of element. (1: required,
+0..1: optional, 1..N: at least one, 0..N).
+@ is the mark for an attribute.
+
+The version attribute is used by the player to identify which feature
+are used in the current file. The version will be incremented in the
+ futur if new feature are needed.
+   
+  3.1 metadata
+  ------------
+  
+The metadata node is quite self explanatory.
+
+<metadata>                                  +-metadata
+  <title>My movie</title>                     +-title       (1)
+  <author>                                    +-author      (1..N)
+    <name>My name</name>                      | +-name      (1)
+    <email>myemail@server.com</email>         | +-email     (0..1)
+    <url>http://www.mysite.com/</url>         | +-url       (0..1)
+    <task>translator</task>                    | +-task      (0..1)    
+  </author>                                   |
+  <language code="eng">English</language>     +-language    (1)
+                                              |  @-code     (1)
+  <languageext code="DirectorComments">       +-languageext (0..1)
+    Toff comments</languageext>               |  @-code
+  <date>YYYY-MM-DD</date>                     +-date        (0..1)
+  <comment>my comment</comment>               +-comment     (0..1)  
+</metadata>
+
+The language code attribute is normalized (ISO639-2), see 
+http://www.loc.gov/standards/iso639-2/englangn.html for a full listing.
+Othere examples :
+<language code="fre">Français</language>
+<language code="spa">Espagñol</language>
+<language code="deu">Deutsch</language> or code can also be "ger".
+
+The language extention must defined in this list : Normal, HearingImpaired,
+DirectorComments, Forced, Children.
+
+The date use the international standard date (ISO8601) [1].
+YYYY-MM-DD :
+  - YYYY : four-digit year
+  - MM : two-digit month (01=January, etc.)
+  - DD : two-digit day of month (01 through 31)
+example : 2002-11-09
+
+You can use basic tag (i, b, u, font, br) in the comment element.
+
+  3.2 styles
+  ----------
+
+Defining styles is optional, but it will make your subtitles more
+structured and easier to maintain. 
+
+<styles>
+  <style name="MyStyleName">
+    <fontstyle face="Arial"
+               family="sans-serif"
+               size="24" or size="+1" (+10%)
+               color="#AARRGGBB"
+               weight="bold"
+               italic="yes"
+               underline="no"
+               alpha="0-100"
+               back-color="#AARRGGBB"
+               outline-color="#AARRGGBB"
+               outline-level="2"
+               shadow-color="#AARRGGBB"
+               shadow-level="4"
+               wrap="no|auto"/>
+    <position alignment="TopLeft"
+              horizontal-margin="10"
+              vertical-margin="20%"
+              relative-to="Window"
+              rotate-x="0-359"
+              rotate-y="0-359"
+              rotate-z="0-359"/>
+  </style>
+  ...
+</styles>
+
+Styles are used to define settings applicable to a group of text subtitles.
+A style has a required name attribute, it's the name you will use to 
+ reference it later. All other attribute are optional.
+
+<styles>
+  <style name="MyStyleName"><fontstyle color="#FF0000" /></style>
+<styles>
+...
+<subtitle>
+  <text style="MyStyleName">your first subtitle text</text>
+<subtitle>
+<subtitle>
+  <text style="MyStyleName">your second subtitle text</text>
+<subtitle>
+
+If you change the style called "MyStyleName" you will change both lines.
+
+In the player a default style is defined, it's used if you don't provide a
+ style.
+Moreover you can override this default style using the name "Default" :
+<style name="Default><fontstyle size="36"/></style>
+
+All the style heritate from the default style (the one of the player or the one 
+you have redefined). 
+
+Here is the hierarchy used :
+
+  +-----------------------+
+  |Internal default style |
+  +-----------+-----------+
+              |
+  +-----------+-----------+              
+  |Redefined default style|
+  +-----------+-----------+              
+              +----------------------------+
+  +-----------+-----------+    +-----------+-----------+
+  |       New style 1     |    |       New style 2     |  ...
+  +-----------------------+    +-----------------------+
+
+- fontstyle :
+
+The family attribute specifies a prioritized list of font family names and/or
+generic family names [1].
+Here are some example :
+family="Times, 'Times New Roman', serif"
+family="Helvetica, Arial, sans-serif"
+family="'Courier New', Courier, monospace"
+family="'Comic Sans MS', cursive"
+As you see it is recommended that one should specify a generic 
+font family after any named fonts as a fallback to a preferred family of font 
+types; one of serif, sans-serif, monospace, cursive or fantasy.
+(http://www.w3.org/TR/REC-CSS2/fonts.html#generic-font-families)
+
+Colors are defined like in HTML, with 3 components, red, green and blue in
+the range 0.255 coded in hexadecimal.
+So pure red is coded  #FF0000, pure green #00FF00 and pure blue #0000FF.
+The color can be extended by a 4th component, an alpha component specifing the
+transparency of the color. An alpha component value of 255 specifies that the
+color is transparent, and an alpha value of 0 specifies that the color is
+opaque. Alpha component values from 1 through 254 specify the degree to
+which the color is blended with the background when the color is rendered.
+When you write #FF0000 in fact it's #00FF0000 a red opaque color. To make 
+a red transparent color you will write, for example #7FFF0000.
+
+The alpha attribute can be used to scale the alpha component of all colors for
+example color="#40FFFFFF" and alpha="50" would translate into 
+color="#A0FFFFFF".
+
+"color" is the foreground color of the text, or the highlighted color in 
+karaoke mode.
+"backcolor" is the color used in karaoke when the text is not highlighted.
+
+The font weight must be defined in this range : 
+"normal|bold|bolder|lighter|100|200|300|400|500|600|700|800|900"
+'normal' is the same as '400'. 
+'bold' is the same as '700'.
+lighter &amp; bolder introduce a notion of inheritance.
+
+- position :
+
+The "alignment" attribute has 9 possible values :
+
+  TopLeft      |    TopCenter   |      TopRight   
+  -------------+----------------+--------------
+  MiddleLeft   |  MiddleCenter  |   MiddleRight
+  -------------+----------------+-------------- 
+  BottomLeft   |  BottomCenter  |   BottomRight
+
+The "relative-to" attribute has 2 possible values : "Window" or "Video".
+
+Margin are defined in pixel or in percent of window or video depending
+of what you have chosen for the "relative-to" attribute.
+
+Rotation are defined in degree. You can use different rotation axis to 
+create some kind of 3D effect.
+
+    Y^    Z
+     |   /
+     |  /
+     | /
+     |/
+ ----+-----------> X
+    /| 
+
+The common rotation used in 2D is the Z axis.
+For example to write a text in diagonal from the bottom-left-corner to
+the upper-right-corner you can use :
+
+    <position alignment="BottomLeft"
+              horizontal-margin="10"
+              vertical-margin="10"
+              relative-to="Window"
+              rotate-z="45"/>
+
+  3.3 effects
+  -----------
+
+TODO :
+Here is an idea, you define some key-frame and player interpolate the
+required frame to make an animation.
+Example :
+    <effects>
+    <effect name="50%-ZoomIn-ZoomOut">
+        <keyframes>
+            <keyframe position="0%"><fontstyle size="1"/></keyframe>
+            <keyframe position="50%"><fontstyle size="24"/></keyframe>
+            <keyframe position="100%"><fontstyle size="1"/></keyframe>
+        </keyframes>
+    </effect>
+    <effect name="FadeInFadeOut">
+        <keyframes>
+            <keyframe position="$start"><fontstyle alpha="100"></keyframe>
+            <keyframe position="$start+500"><fontstyle alpha="0"></keyframe>
+            <keyframe position="$end-500"><fontstyle alpha="0"></keyframe>          
+            <keyframe position="$end"><fontstyle alpha="100"></keyframe>
+        </keyframes>
+    </effect>   
+    <effect name="HScrolling">
+        <keyframes>
+            <keyframe position="0%"><position alignment="BottomRight" horizontal-margin="-$elemwidth"/></keyframe>
+            <keyframe position="100%"><position alignment="BottomLeft"/></keyframe>
+        </keyframes>
+    </effect>       
+  </effects>
+
+kf position : $start, $end, $duration
+
+Attribute that could be "animated" :
+<position alignment, horizontal-margin, vertical-margin, relative-to/>
+<fontstyle size, color, alpha, outline-color, outline-level, shadow-color, shadow-level/> 
+
+  3.4 subtitles
+  -------------
+
+It's the essential part of the file, the part where you put your subtitle
+content.
+      
+<subtitles>                                 +-subtitles     (1..N)
+  <language code="eng">English</language>     +-language    (1)
+                                              |  @-code     (1)
+  <languageext code="DirectorComments">       +-languageext (0..1)
+    Toff comments</languageext>               |  @-code
+  <subtitle                                   +-subtitle    (1..N)
+    start="hh:mm:ss.mmm"                        @-start     (1)
+    stop="hh:mm:ss.mmm"                         @-stop      (0..1)
+    duration="hh:mm:ss.mmm"                     @-duration  (0..1)
+    type="SubtitleType">                        @-SubtitleType  (0..1)
+    <text></text>                               +-text      (0..N)
+    <image></image>                             +-image     (0..N)
+    <karaoke></karaoke>                         +-karaoke   (0..N)
+    <shape/>                                    +-shape     (0..N)
+    <comment/>                                  +-comment   (0..N)
+    ...
+  </subtitle>
+  ...
+</subtitles>
+
+A subtitle has 2 required timestamps attribute : start and stop.
+Timestamps use the following format :
+hh : two-digit hour (00-23)
+mm : two-digit minute (00-59)
+ss : two-digit second (00-59)
+mmm : three-digit millisecond (000-999)
+
+Instead of using a stop timestamp you can use the duration attribute.
+It's also allowed to use shorter timestamp : ss[.mmm]
+100   -> 00:01:40.000
+1.100 -> 00:00:01.100
+
+SubtitleType can be either open or closed, but if not set then open is implied.
+
+The content of a subtitle can be composed of different elements : text,
+image or karaoke in any number.
+
+All elements can be independantely placed with the same position attribute as 
+in style : "alignment", "horizontal-margin", "vertical-margin" and "relative-to".
+
+- text :
+
+<text effect="MyEffectName" style="MyStyleName" speaker="Luke">
+  <i>Italic</i><b>Bold</b><u>Underline</u><br/>
+  <font face="Arial" size="16" color="#FF0000"
+        outline-color="#00FF00"
+        outline-level="2"
+        shadow-color="#AAAAAA"
+        shadow-level="4"
+  >Red text in Arial 16</font>
+</text>
+
+Text element are defined by a subset of XHTML.
+All available tag are used in the example above.
+A special note for HTML users, XHTML is a bit more strict that HTML. In XHTML
+you must precise that a tag is an empty tag, so line break use the tag <br/>
+instead of <br>. Moreover the tag must be properly nested :
+<b><i>This is </b>the bad example.</i>
+<i><b>This is </b>the right example.</i>
+XHTML is also case sensitive : <i>This right</i>, <I>This is wrong</I>
+
+- image :
+
+<image alpha="0-100" colorkey="#RRGGBB">Image_file_name</image>
+The image must be in the same directory, or a sub-directory of the subtitle file.
+
+- karaoke :
+
+<karaoke style="MyStyleName"><k t="1000"/>song <k t="1000"/>text</karaoke>
+
+The karaoke element is very similar to the text element. The main differrence
+is that you can used the special tag <k t="duration_in_ms"/>.
+
+So in the example below the text "song" has a duration of 400 ms, "cool " has
+a duration of 300 ms...
+
+<subtitle start="00:00:10.000" stop="00:00:11.000">
+  <karaoke><k t="100"/>a <k t="200"/>very <k t="300"/>cool <k t="400"/>song</karaoke>
+</subtitle>
+
+The sum of all the duration must be equal to the subtitle duration.
+Here 100+200+300+400 = 1000 ms = 1s
+
+- shape :
+
+TODO :
+
+example :
+<shape type="rectangle" width="160" height="120"/>
+
+- comment:
+Is a pure text element that cannot have any type of formatting.
+
+  3.5 other comments
+  -----------------
+
+For expert :
+
+If you can read an XML DTD, and for strict format syntax see the file USFV100.dtd
+
+If you want to validate your file you can include in the XML prolog a link to the DTD.
+<!DOCTYPE USFSubtitles SYSTEM "USFV100.dtd">
+
+You can also add a reference to an XSL stylesheet, for brower display.
+<?xml-stylesheet type="text/xsl" href="USFV100.xsl"?>
+
+
+4 - An example
+--------------
+
+8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----8<-----
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<USFSubtitles version="1.0">
+  <metadata>
+    <title>The Universal Subtitle Format sample</title>
+    <author>
+      <name>[Toff]</name>
+      <email>christophe.paris@free.fr</email>
+      <url>http://christophe.paris.free.fr/</url>
+    </author>
+    <language code="eng">English</language>
+    <date>2002-11-08</date>
+    <comment>This is a short example of USF.</comment>
+  </metadata>
+
+  <styles>
+    <!-- Here we redefine the default style -->
+    <style name="Default" >
+      <fontstyle face="Arial" size="24" color="#FFFFFF" back-color="#AAAAAA" />
+      <position alignment="BottomCenter" vertical-margin="20%"
+                relative-to="Window" />
+    </style>
+        
+    <!-- All others styles herite from the default style -->
+    <style name="NarratorSpeaking">
+      <fontstyle italic="yes" />
+    </style>
+    
+    <style name="MusicLyrics">
+      <fontstyle back-color="#550000" color="#FFFF00" bold="yes" />
+    </style>
+  </style>
+  
+  <subtitles>
+    <subtitle start="00:00:00.000" stop="00:00:05.000">         
+      <text alignment="MiddleCenter">Welcome to 
+        <b>The Core Media Player</b></text>
+      <image alignment="TopRight" vertical-margin="20" horizontal-margin="20"
+             colorkey="#FFFFFF">TCMP_Logo.bmp</image>
+    </subtitle>
+    
+    <subtitle start="00:00:06.000" stop="00:00:10.000">
+      <text style="NarratorSpeaking" speaker="Toff">Hi! This is a <font size="16">
+        small</font> sample, let's sing a song.</text>
+    </subtitle>
+    
+    <subtitle start="00:00:06.000" stop="00:00:10.000">
+      <karaoke style="MusicLyrics"><k t="700"/>La! La! La! <k t="1000"/>
+        Karokeeeeeeeee <k t="100"/>is <k t="200"/>fun !</text>
+    </subtitle>
+  <subtitles>
+  
+</USFSubtitles>
+
+----->8----->8----->8----->8----->8----->8----->8----->8----->8----->8----->8
+
+5 - The future of USF
+---------------------
+
+This is only the first revision of the Universal Subtitle Format and we will
+enhance so it can become the most complete format. Please remember that it is
+one of the key of XML: the flexibility.
+
+List of the future enhancements and usability:
+- Level choices: level 1: pure text output, level 2 : text with b i u tag
+level 3 : style, level 4 : animation
+- Directshow Filter Integration
+- Portable rendering solution via expat/freetype
+- USF will be supported in the most advanced file format as a subtitle track: the
+Matroska file format. For more information on Matroska, please visit http://matroska.org/
+- USF in Ogg Media (OGM) files
+- Encryption (reverse-engineering protection) of the XML file, so you can protect
+your work. We actually plan to use a (binary ?) file format using vectors. This may
+also be used for hardware support and will suppress the need of the fonts.
+- UCI subtitle codec, so the USF can be played on every player supporting the powerfull
+UCI API even if the player don't have any kind of support for subtitles.
+- Enhancements of the specifications, such as animations, rotations, scalings, and
+drawing.
+- The Universal Subtitle Format Editor development supported in The Core Media Player.
+Which features incredibly easy-to-use facilities with real-time previews.
+- Much more...
+
+
+6 - History
+-----------
+
+2010-11-28 v1.1 (Uffe Hammer)
+  - Added type (SubtitleType) attribute to a subtitle element.
+  - Added comment element to subtitle element.
+
+2003-06-18 v0.16 (Christophe PARIS)
+  - Corrected typo EaringImpaired -> HearingImpaired
+  - Added speaker attribute to the "text" element
+  - Added "BasicTagAndText" support in the "comment" element
+  - Multiple instances of the "subtitles" elements is supported with 
+    "language" and "languageext" elements to put several language in one
+    file
+  - Several "author" element is allowed
+  - Added "task" attribute to the "author" element
+
+2003-02-22 v0.15 (Christophe PARIS)
+  - Added font family attribute
+  - Changed bold attribute in weight attribute with more levels.
+  - Changed the alpha component definition, now "0" is opaque and "FF" is
+    transparent
+  - Added relation between alpha attribute and alpha color component
+  - Added wrap attribute to fontstyle
+
+2003-01-19 v0.14 (Christophe PARIS)
+  - Used ISO639-2 in place of ISO639-1 language code
+  - Color definition extended from RGB to ARGB
+  - Added rotation-x, rotation-y and rotation-z attribute to the position
+    element
+  - Added duration attribute, short timestamp
+
+2002-12-04 v0.13 (Christophe PARIS)
+  - Renamed attribute font name in font face
+  - Renamed attribute backcolor in back-color
+  - Added outline-color, outline-level, shadow-color, shadow-level
+    attribute to fontstyle
+  - font size can now be relative (+1 mean +10%)
+  - Added language extention element (languageext) in metadata
+
+2002-11-23 v0.12 (Ludovic Vialle)
+  - Introduction
+  - Future of USF 
+
+2002-11-09 v0.10 (Christophe PARIS) 
+  - DTD specs. converted to this document.
+
+2002-10-30 v0.03 (Christophe PARIS)
+  - Added karaoke support
+    - Added backcolor attribute in fontstyle and font element
+    - Added karaoke element
+    - Added k element
+  - Added alpha attribut in image and fontstyle element
+  - Added image/colorkey
+  - Corrected typo, alignement in alignment
+  
+2002-08-17 v0.02 (Christophe PARIS)
+  - Added element metadata/language
+  - Added attribute position/relative-to
+  
+2002-08-16 v0.01 (Christophe PARIS)
+  - First draft                           
+
+
+7 - Resources
+-------------
+
+ISO-639-2 : Language Code
+http://www.loc.gov/standards/iso639-2/englangn.html
+
+ISO8601 : Date and Time format
+http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+
+Generic font families
+http://www.w3.org/TR/REC-CSS2/fonts.html#generic-font-families
+
+Extensible Markup Language (XML) 1.0 (Second Edition) :
+http://www.w3.org/TR/REC-xml
+
+XML in 10 points :
+http://www.w3.org/XML/1999/XML-in-10-points
+
+
+8 - Glossary
+-------------
+
+XML - extensible markup language is an open standard (W3C) that provides a 
+data format and a data modeling language for defining data.
+
+DTD - document type definition is the modeling mechanism for XML. It provides 
+the rules for how XML data is defined and logically related.
+
+Well-formed XML - an XML document in proper XML format, but with no structural 
+conformance to a DTD (flat XML).
+
+Valid XML - an XML document in proper XML format with a structural conformance 
+to a DTD (structured XML).
+
+XSLT - extensible stylesheet language for transforming XML documents into other
+XML documents.
+
+9 - TODO
+--------
+
+- Add a way to scale the subtitles according to the original resolution used
+- shapes
+- effects
+- embedded image &amp; font (ex: embedded:\\image1 + an embedded section with binary
+  encoded data ...)
+- short color as in css
+- remove language from metadata
+- The font element should have italic, weight, underline attributes. Having
+  these in the fontstyle element only is insufficient. (see cc.org)
+  -> merge font &amp; fontstyles
+- remove font/face, family is enough
+- merge text &amp; karaoke
+
+- add all attributes of fontstyle to font (maybe merge the two, or add a %fontattributes% set)
+- Add StrikeOut (maybe shorthand <s> too)
+- Non-uniform font scaling -> (ASS \fscx, \fscy)
+- Box display around subtitles: around text and around whole block; borders, padding...
